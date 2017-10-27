@@ -2,7 +2,7 @@
 {
     [CmdletBinding()]
     Param
-    (            
+    (
         [String]$Computer="localhost",
 
         [String]$Port="8384",
@@ -37,8 +37,8 @@
         }
 
         $Device = [PSCustomObject]@{
-            deviceID    = $DeviceID       
-            name        = $Name     
+            deviceID    = $DeviceID
+            name        = $Name
             addresses   = @($Addresses)
             compression = $Compression
             certName    = $CertName
@@ -54,7 +54,7 @@ Function Update-SyncthingDevice
 {
     [CmdletBinding()]
     Param
-    (            
+    (
         [String]$Computer="localhost",
 
         [String]$Port="8384",
@@ -94,23 +94,23 @@ Function Update-SyncthingDevice
         }
 
         $Device = [PSCustomObject]@{
-            deviceID    = $DeviceID       
-            name        = $NewName     
+            deviceID    = $DeviceID
+            name        = $NewName
             addresses   = @($Addresses)
             compression = $Compression
             certName    = $CertName
             introducer  = $Introducer
         }
-       
 
-        $SyncthingConfig.devices | ForEach-Object { 
+
+        $SyncthingConfig.devices | ForEach-Object {
             if ($_.name -eq $Name)
             {
                 $Index = ([Array]::IndexOf($SyncthingConfig.devices,$_))
                 $SyncthingConfig.devices[$Index] = $Device
             }
         }
-     
+
         Set-SyncthingConfig -Computer $Computer -Port $Port -SyncthingConfig $SyncthingConfig
     }
 }
@@ -122,7 +122,7 @@ Function Add-SyncthingFolder
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384", 
+        [String]$Port="8384",
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [Alias('Id')]
@@ -203,12 +203,12 @@ Function Add-SyncthingFolder
             type                  = $Type
             devices               = $Devices
             rescanIntervalS       = $rescanIntervalS
-            ignorePerms           = $IgnorePerms        
+            ignorePerms           = $IgnorePerms
             autoNormalize         = $AutoNormalize
             mindDiskFreePct       = $MinDiskFreePct
-            versioning            = $Versioning        
+            versioning            = $Versioning
             copiers               = $Copiers
-            pullers               = $Pullers        
+            pullers               = $Pullers
             hashers               = $Hashers
             order                 = $Order
             ignoreDelete          = $IgnoreDelete
@@ -217,7 +217,7 @@ Function Add-SyncthingFolder
             pullerPauseS          = $PullerPauseS
             maxConflicts          = $MaxConflicts
             disableSparseFiles    = $DisableSparseFiles
-            disableTempIndexes    = $DisableTempIndexes             
+            disableTempIndexes    = $DisableTempIndexes
         }
 
         Write-Verbose "Adding folder to config"
@@ -233,7 +233,7 @@ function Update-SyncthingFolder
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384", 
+        [String]$Port="8384",
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [Alias('Id')]
@@ -323,12 +323,12 @@ function Update-SyncthingFolder
             type                  = $Type
             devices               = @($Devices)
             rescanIntervalS       = $rescanIntervalS
-            ignorePerms           = $IgnorePerms        
+            ignorePerms           = $IgnorePerms
             autoNormalize         = $AutoNormalize
             mindDiskFreePct       = $MinDiskFreePct
-            versioning            = $Versioning        
+            versioning            = $Versioning
             copiers               = $Copiers
-            pullers               = $Pullers        
+            pullers               = $Pullers
             hashers               = $Hashers
             order                 = $Order
             ignoreDelete          = $IgnoreDelete
@@ -337,12 +337,12 @@ function Update-SyncthingFolder
             pullerPauseS          = $PullerPauseS
             maxConflicts          = $MaxConflicts
             disableSparseFiles    = $DisableSparseFiles
-            disableTempIndexes    = $DisableTempIndexes             
+            disableTempIndexes    = $DisableTempIndexes
         }
 
         Write-Verbose "Adding folder to config"
-        
-        $SyncthingConfig.folders | ForEach-Object { 
+
+        $SyncthingConfig.folders | ForEach-Object {
             if ($_.id -eq $FolderID)
             {
                 $Index = ([Array]::IndexOf($SyncthingConfig.folders,$_))
@@ -351,7 +351,7 @@ function Update-SyncthingFolder
         }
 
         Set-SyncthingConfig -Computer $Computer -Port $Port -SyncthingConfig $SyncthingConfig
-        
+
     }
 }
 
@@ -362,11 +362,11 @@ function Remove-SyncthingFolder
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384", 
+        [String]$Port="8384",
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [Alias('Id')]
-        [String]$FolderId        
+        [String]$FolderId
     )
 
     Process
@@ -375,12 +375,12 @@ function Remove-SyncthingFolder
         {
             $SyncthingConfig = Get-SyncthingConfig -Computer $Computer -Port $Port
         }
-        
+
         $NewFolders = @()
-        $SyncthingConfig.folders | ForEach-Object { 
+        $SyncthingConfig.folders | ForEach-Object {
             if ($_.id -ne $FolderID)
             {
-                
+
                 $NewFolders += $_
             }
             $SyncthingConfig.folders = $NewFolders
@@ -395,39 +395,47 @@ Function Get-SyncthingAPIkey
     [CmdletBinding()]
     Param
     (
-        [String]$Computer="localhost",
-        
-        [String]$Port="8384"   
+        [String]$Computer = "localhost",
+
+        [String]$Port = "8384"
     )
 
     Process
     {
         $PatternMatch = Get-Content "$Env:Appdata\SyncTrayzor\config.xml" | Select-String "^.*<SyncthingApiKey>(.*)</SyncthingApiKey>.*$"
-        $ApiKey = $PatternMatch.Matches.Groups[1].value
+        if ($PatternMatch)
+        {
+            $ApiKey = $PatternMatch.Matches.Groups[1].value
+        }
+        else
+        {
+            $PatternMatch = Get-Content "$Env:LocalAppdata\Syncthing\config.xml" | Select-String "^.*<apikey>(.*)</apikey>.*$"
+            $ApiKey = $PatternMatch.Matches.Groups[1].value
+        }
 
         return $ApiKey
     }
 }
 
-Function Get-SyncthingConfig    
+Function Get-SyncthingConfig
 {
     [CmdletBinding()]
     Param
     (
         [String]$Computer="localhost",
-        
-        [String]$Port="8384"   
+
+        [String]$Port="8384"
     )
 
     Process
     {
         $ApiKey = Get-SyncthingAPIkey -Computer $Computer -Port $Port
         $Url = "http://$Computer"+":"+"$Port/rest/system/config"
-        
+
         Write-Verbose "Getting config from $url"
-        
+
         $SyncthingConfig = Invoke-RestMethod -Uri $Url -Method Get -Headers @{"X-API-Key" = $ApiKey}
-        
+
         return $SyncthingConfig
     }
 }
@@ -437,22 +445,22 @@ Function Get-SyncthingDeviceID
     <#
         .SYNOPSIS
         Gets the device ID of Syncthing.
- 
+
         .DESCRIPTION
         This command gets the device ID of Syncthing.
- 
+
         .EXAMPLE
         Get-SyncthingDeviceID -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Get-SyncthingDeviceID
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
@@ -460,12 +468,12 @@ Function Get-SyncthingDeviceID
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
         $SyncthingConfig = Get-SyncthingStatus -Computer $Computer -Port $Port
         $MyDeviceID = $SyncthingConfig.myID
-        
+
         return $MyDeviceID
     }
 
@@ -474,22 +482,22 @@ Function Get-SyncthingDevices
     <#
         .SYNOPSIS
         Gets the devices of Syncthing.
- 
+
         .DESCRIPTION
         This command gets all the devices of Syncthing.
- 
+
         .EXAMPLE
         Get-SyncthingDevices -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Get-SyncthingDevices
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
@@ -497,14 +505,14 @@ Function Get-SyncthingDevices
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
     Process
     {
         $SyncthingConfig = Get-SyncthingConfig -Computer $Computer -Port $Port
         $Devices = $SyncthingConfig.devices
-        
+
         return $Devices
     }
 }
@@ -514,25 +522,25 @@ Function Get-SyncthingFilesRemaining
     <#
         .SYNOPSIS
         Gets the remaining files of a Syncthing folder.
- 
+
         .DESCRIPTION
         This command gets the remaining files of a given Syncthing Folder.
- 
+
         .EXAMPLE
         Get-SyncthingFolders -Computer 192.168.1.100 -Port 8080 -FolderID Private_Folder
- 
+
         .EXAMPLE
         Get-SyncthingFolders -FolderID Private_Folder
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
 
         .PARAMETER FolderID
         The FolderID of the folder you wish to get a list of remaining files
-        
+
     #>
 
     [CmdletBinding()]
@@ -543,7 +551,7 @@ Function Get-SyncthingFilesRemaining
         [String]$Port="8384",
 
         [Parameter(Mandatory=$true)]
-        [String]$FolderID 
+        [String]$FolderID
     )
 
     Process
@@ -551,9 +559,9 @@ Function Get-SyncthingFilesRemaining
         $ApiKey = Get-SyncthingAPIkey -Computer $Computer -Port $Port
         $BaseUrl = "http://$Computer"+":"+"$Port/rest/db/need"
         $Url = $BaseUrl+"?folder=$FolderID"
-        
+
         $Files = Invoke-RestMethod -Uri $Url -Method Get -Headers @{"X-API-Key" = $ApiKey}
-        
+
         return $Files
     }
 }
@@ -563,22 +571,22 @@ Function Get-SyncthingFolders
     <#
         .SYNOPSIS
         Gets the folders of Syncthing.
- 
+
         .DESCRIPTION
         This command gets all the folders of Syncthing.
- 
+
         .EXAMPLE
         Get-SyncthingFolders -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Get-SyncthingFolders
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
@@ -586,7 +594,7 @@ Function Get-SyncthingFolders
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
     Process
@@ -603,29 +611,29 @@ Function Get-SyncthingStatus
     <#
         .SYNOPSIS
         Gets the current Syncthing status.
- 
+
         .DESCRIPTION
         This command gets the current status of Syncthing.
- 
+
         .EXAMPLE
         Get-SyncthingStatus -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Get-SyncthingStatus
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
     Param
     (
         [String]$Computer="localhost",
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
     Process
@@ -633,7 +641,7 @@ Function Get-SyncthingStatus
         $ApiKey = Get-SyncthingAPIkey
         $Url = "http://$Computer"+":"+"$Port/rest/system/status"
         $Status = Invoke-RestMethod -Uri $Url -Method Get -Headers @{"X-API-Key" = $ApiKey}
-     
+
         return $Status
     }
 }
@@ -643,22 +651,22 @@ Function Get-SyncthingSyncStatus
     <#
         .SYNOPSIS
         Gets the Syncthing Sync Status.
- 
+
         .DESCRIPTION
         This command gets the sync status of all folders. Takes a lot of CPU, use sparingly.
- 
+
         .EXAMPLE
         Get-SyncthingSyncStatus -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Get-SyncthingSyncStatus
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
@@ -691,32 +699,32 @@ Function Get-SyncthingSyncStatus
             $SyncStatus | Add-Member -MemberType NoteProperty -Name RestFiles -Value $Files.rest.name
             $SyncStatusArray += $SyncStatus
         }
-        
+
         return $SyncStatusArray
     }
 }
 
-Function Get-SyncthingVersion    
+Function Get-SyncthingVersion
 {
     <#
         .SYNOPSIS
         Gets the current Syncthing version.
- 
+
         .DESCRIPTION
         This command gets the current version of Syncthing.
- 
+
         .EXAMPLE
         Get-SyncthingVersion -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Get-SyncthingConfig
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
@@ -724,7 +732,7 @@ Function Get-SyncthingVersion
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
     Process
@@ -732,7 +740,7 @@ Function Get-SyncthingVersion
         $ApiKey = Get-SyncthingAPIkey -Computer $Computer -Port $Port
         $Url = "http://$Computer"+":"+"$Port/rest/system/upgrade"
         $Version = Invoke-RestMethod -Uri $Url -Method Get -Headers @{"X-API-Key" = $ApiKey}
-        
+
         return $Version
     }
 }
@@ -743,22 +751,22 @@ Function Restart-Syncthing
     <#
         .SYNOPSIS
         Restarts Syncthing.
- 
+
         .DESCRIPTION
         This command restarts Syncthing.
- 
+
         .EXAMPLE
         Restart-Syncthing -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Restart-Syncthing
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
 
     [CmdletBinding()]
@@ -766,7 +774,7 @@ Function Restart-Syncthing
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
     Process
@@ -783,25 +791,25 @@ Function Set-SyncthingConfig
     <#
         .SYNOPSIS
         Sets the Syncthing Config.
- 
+
         .DESCRIPTION
         This command sets the config of Syncthing. It converts the psobject to json and posts it to Syncthing. Gets applied only after syncthing restarts. Use Restart-Syncthing or the webui to do so.
- 
+
         .EXAMPLE
         Set-SyncthingConfig -Computer 192.168.1.100 -Port 8080 -SyncthingConfig $SyncthingConfig
- 
+
         .EXAMPLE
         Set-SyncthingConfig -SyncthingConfig $SyncthingConfig
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
 
         .PARAMETER Config
         The config object, originally from Get-SyncthingConfig
-        
+
     #>
 
     [CmdletBinding()]
@@ -820,7 +828,7 @@ Function Set-SyncthingConfig
         $ApiKey = Get-SyncthingAPIkey -Computer $Computer -Port $Port
         $SyncthingConfigJson = $SyncthingConfig | ConvertTo-Json -Compress -Depth 6
         Write-Verbose "Posting Config to $Url"
- 
+
         Invoke-RestMethod -Uri $Url -Method Post -Body $SyncthingConfigJson -Headers @{"X-API-Key" = $ApiKey} -ContentType application/json
     }
 }
@@ -830,30 +838,30 @@ Function Stop-Syncthing
     <#
         .SYNOPSIS
         Shuts down syncthing.
- 
+
         .DESCRIPTION
         This command shuts down Syncthing.
- 
+
         .EXAMPLE
         Shutdown-Syncthing -Computer 192.168.1.100 -Port 8080
- 
+
         .EXAMPLE
         Shutdown-Syncthing
- 
+
         .PARAMETER Computer
         The IP or hostname of the computer that runs Syncthing. Default value is localhost.
- 
+
         .PARAMETER Port
         The tcp port of Syncthing. Default value is 8384
-        
+
     #>
-    
+
     [CmdletBinding()]
     Param
     (
         [String]$Computer="localhost",
 
-        [String]$Port="8384"   
+        [String]$Port="8384"
     )
 
     Process
@@ -864,12 +872,12 @@ Function Stop-Syncthing
         Write-Verbose "Syncthing has shut down"
     }
 }
-    
+
 function Install-SyncTrayzor
 {
     [CmdletBinding()]
     param()
-    
+
     Process
     {
         Try
@@ -892,29 +900,29 @@ function Install-SyncTrayzor
 #    <#
 #        .SYNOPSIS
 #        Installs Syncthing.
-# 
+#
 #        .DESCRIPTION
 #        This Command downloads and installs the latest stable version of Syncthing.
-# 
+#
 #        .EXAMPLE
 #        Install-Syncthing -Path "C:\Program Files(x86)" -RunAtStartup $true
-# 
+#
 #        .EXAMPLE
 #        Install-Syncthing
-# 
+#
 #        .PARAMETER Path
 #        The path where Syncthing will get installed. Default is "C:".
 #
 #        .PARAMETER RunAtStartup
 #        Whether or not Syncthing shall start automatically. Default is $false
-#        
+#
 #    #>
 #
 #    [CmdletBinding()]
 #    Param
 #    (
 #        [String]$Path="C:\",
-#        [ValidateSet($true,$false)][string]$RunAtStartup=$false  
+#        [ValidateSet($true,$false)][string]$RunAtStartup=$false
 #    )
 #
 #    Process
@@ -924,7 +932,7 @@ function Install-SyncTrayzor
 #            Write-Verbose "Creating $Path"
 #            New-Item -ItemType Directory -Path $Path -Force
 #        }
-#        
+#
 #        Write-Verbose "Getting latest release"
 #        $htmlsyncthing = Invoke-WebRequest "https://github.com/syncthing/syncthing/releases" -DisableKeepAlive
 #        $syncthingzipurl = "https://github.com" + ($htmlsyncthing.Links.href | Where-Object {$_ -like "*windows-amd64*"} | select -First 1)
